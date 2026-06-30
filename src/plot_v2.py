@@ -755,8 +755,7 @@ def twin_vgg7_plot(df: pd.DataFrame,
 
         fig, axs = plt.subplots(1,
                                 1,
-                                figsize=((3.7 * 1),
-                                        3),
+                                figsize=(3.4039*1.13, 2.1037*1.2),
                                 layout='tight',
                                 sharey=True,
                                 squeeze=False)
@@ -792,11 +791,11 @@ def twin_vgg7_plot(df: pd.DataFrame,
 
         axs[0][0].legend(loc='lower left', fontsize=8, ncol=2)
         fig.savefig(
-            f"{store_path}/lrs_{lrs_noise}_yparams_{y_params}.pdf",
-            dpi=300)
+            f"{store_path}/twin_vgg7.pdf")
         fig.savefig(
-            f"{store_path}/lrs_{lrs_noise}_yparams_{y_params}.svg",
-            dpi=300)
+            f"{store_path}/twin_vgg7.svg")
+        fig.savefig(
+            f"{store_path}/twin_vgg7.png")
 
 def get_exp_products(config: str):
     exp_name = config.split('/')[-1].split('.json')[0]
