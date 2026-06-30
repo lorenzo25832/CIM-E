@@ -17,9 +17,9 @@ import pickle
 import argparse
 import json
 from functools import reduce
+import itertools
 
 from model_parser import *
-from run import *
 from RWTHColors import ColorManager
 
 # Colors
@@ -328,15 +328,13 @@ def scale_variability_plot(df: pd.DataFrame,
                                                 figsize=(3.7 * len(xbar_sizes),
                                                          3),
                                                 layout='tight',
-                                                sharey=True)
-                        axs = axs.flatten() if len(xbar_sizes) > 1 else [
-                            axs[0]
-                        ]
-                        axs[0].set_ylabel("Top-1 Accuracy (\\%)")
+                                                sharey=True,
+                                                squeeze=False)
+                        axs[0][0].set_ylabel("Top-1 Accuracy (\\%)")
 
                         for n, xs in enumerate(xbar_sizes):
                             print(f"Plotting for {mm_set_name}: {xs}")
-                            axs[n].set_title(
+                            axs[0][n].set_title(
                                 f"Crossbar Size: {xs[1:-1].replace(', ', times_str)}"
                             )
                             df_xs_mms = df_hrs_lrs[
@@ -345,7 +343,7 @@ def scale_variability_plot(df: pd.DataFrame,
                                     mm_set_name))]
                             base_top1 = df_xs_mms['top1_baseline'].unique()
                             assert len(base_top1) == 1
-                            axs[n].axhline(y=base_top1[0],
+                            axs[0][n].axhline(y=base_top1[0],
                                            color='black',
                                            linestyle='--')
 
@@ -366,23 +364,23 @@ def scale_variability_plot(df: pd.DataFrame,
                                     'xbar_size', 'm_mode', 'hrs_noise',
                                     'lrs_noise', 'top1'
                                 ]])
-                                axs[n].plot(df_xs_mm[this_label],
+                                axs[0][n].plot(df_xs_mm[this_label],
                                             df_xs_mm['top1'],
                                             marker='x',
                                             label=f"{mm.replace('NN_', ' ')}",
                                             color=color_mode[mm])
 
-                            axs[n].set_xticks(noise)
-                            axs[n].xaxis.set_major_formatter(
+                            axs[0][n].set_xticks(noise)
+                            axs[0][n].xaxis.set_major_formatter(
                                 ticker.StrMethodFormatter("{x:.2g}"))
-                            axs[n].tick_params(axis='both', labelsize=10)
-                            axs[n].set_xlabel(
+                            axs[0][n].tick_params(axis='both', labelsize=10)
+                            axs[0][n].set_xlabel(
                                 rf"{state.upper()} $\sigma (\mu A)$")
-                            axs[n].grid(axis='y',
+                            axs[0][n].grid(axis='y',
                                         linestyle=':',
                                         color=grid_color)
 
-                        axs[0].legend(loc='lower left', fontsize=8, ncol=2)
+                        axs[0][0].legend(loc='lower left', fontsize=8, ncol=2)
                         fig.savefig(
                             f"{store_path}/{state}_scale_var_{mm_set_name}_{nn_name}_{hrs_lrs}.pdf",
                             dpi=300)
@@ -737,6 +735,68 @@ def parasitics_multi_plot(df: pd.DataFrame, store_path: str, s_cat: list,
                 fig.savefig(f"{store_path}/parasitics_{mm_set_name}.png",
                             dpi=300)
 
+def twin_vgg7_plot(df: pd.DataFrame,
+                           store_path: str,
+                           s_cat: list,
+                           d_cat: list,
+                           lrs_noise: list | None = None,
+                           y_params: list[str] = ["top1", "top5"],
+                           ) -> None:
+    """
+    plot src/config/twin_vgg7.conf
+    x axis is over hrs_noise
+    multiple lrs_noise values are plotted as separate lines
+    lrs_noise param can be used to restrict which lines are plotted
+    """
+
+    for nn_name in list(df['nn_name'].unique()):
+        print(f"Generate plots for {nn_name}.")
+        df_nn = df[(df['nn_name'] == nn_name)]
+
+        fig, axs = plt.subplots(1,
+                                1,
+                                figsize=((3.7 * 1),
+                                        3),
+                                layout='tight',
+                                sharey=True,
+                                squeeze=False)
+        axs[0][0].set_ylabel("Accuracy (\\%)")
+        axs[0][0].set_ylim(top=103)
+
+        for baseline in ["top1_baseline", "top5_baseline"]:
+            params = {"top1_baseline":{"name":"Top-1 Baseline", "linestyle": "--"},
+                "top5_baseline":{"name":"Top-5 Baseline", "linestyle": "-."}}[baseline]
+            base_top = df_nn[baseline].unique()
+            assert len(base_top) == 1
+            axs[0][0].axhline(y=base_top[0],
+                        color='black',
+                        linestyle=params["linestyle"], label=params["name"])
+
+        for lrs_n in lrs_noise if lrs_noise is not None else df_nn["lrs_noise"].unique():
+            for y_param in y_params:
+                df_filt = df_nn[df_nn["lrs_noise"] == lrs_n]
+                axs[0][0].plot(df_filt["hrs_noise"],
+                    df_filt[y_param],
+                    marker='x',
+                    label=rf"{dict(top1='Top-1', top5='Top-5').get(y_param, y_param)} with LRS {lrs_n}$\sigma$")
+
+        axs[0][0].set_xticks(list(filter(lambda d: d%1==0,df_nn["hrs_noise"].unique())))
+        axs[0][0].xaxis.set_major_formatter(
+            ticker.StrMethodFormatter("{x:.2g}"))
+        axs[0][0].tick_params(axis='both', labelsize=10)
+        axs[0][0].set_xlabel(
+            rf"HRS $\sigma (\mu A)$")
+        axs[0][0].grid(axis='y',
+                    linestyle=':',
+                    color=grid_color)
+
+        axs[0][0].legend(loc='lower left', fontsize=8, ncol=2)
+        fig.savefig(
+            f"{store_path}/lrs_{lrs_noise}_yparams_{y_params}.pdf",
+            dpi=300)
+        fig.savefig(
+            f"{store_path}/lrs_{lrs_noise}_yparams_{y_params}.svg",
+            dpi=300)
 
 def get_exp_products(config: str):
     exp_name = config.split('/')[-1].split('.json')[0]
@@ -765,7 +825,6 @@ if __name__ == "__main__":
         cfg = json.load(json_file)
 
     exp_name, repo_path, exp_result_path, df = get_exp_products(args.config)
-
     categories = df.columns
     cat_static = []  # Categories (columns) that all experiments have in common
     cat_dynamic = []  # Categories that change for at least one experiment
@@ -783,6 +842,8 @@ if __name__ == "__main__":
     print(
         f"The benchmark has the following (static) properties:\n{cat_static}")
     print(f"The benchmarks varies the following properties:\n{cat_dynamic}")
+    for catd in cat_dynamic:
+        print(f"{catd} with values {df[catd].unique()}")
 
     store_path = f"{exp_result_path}"
 
@@ -850,5 +911,13 @@ if __name__ == "__main__":
                                             d_cat=cat_dynamic,
                                             state='hrs',
                                             plt_legend=False)
+    elif exp_name == 'twin_vgg7':
+        if args.secondary_config:
+            raise Exception("twin_vgg7 does not support secondary config")
+
+        twin_vgg7_plot(df=df,
+                                store_path=store_path,
+                                s_cat=cat_static,
+                                d_cat=cat_dynamic,)
     else:
         raise Exception(f"Plot for experiment {exp_name} not implemented.")
