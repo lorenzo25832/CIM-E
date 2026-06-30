@@ -88,7 +88,7 @@ else
     CONTAINER_FLAGS="--user $(id -u):$(id -g)"
 fi
 
-$CONTAINER_ENGINE run -it --rm --memory=4g $CONTAINER_FLAGS \
+$CONTAINER_ENGINE run -it --rm $CONTAINER_FLAGS \
     -v ${PROJ_DIR}/src:/apps/src:Z \
     -v ${PROJ_DIR}/models:/apps/models:Z \
     -v ${PROJ_DIR}/results:/apps/results:Z \

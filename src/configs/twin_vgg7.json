@@ -6,24 +6,23 @@
         [32, 32, 3]
     ],
     "nn_data_set": "cifar10",
-    "nn_data": "TEST",
+    "nn_data": "TRAIN",
     "batch": 200,
-    "num_runs": 1,
+    "num_runs": 4,
     "xbar_size": [
-	[256, 256]
+	[16, 16]
     ],
     "digital_only": false,
     "hrs_lrs": [
         [5, 48]
     ],
     "adc_type": "INF_ADC",
+    "resolution": [-1],
     "m_mode": [
         "BNN_III"
     ],
-    "hrs_noise": [3.16, 8.74],
+    "hrs_noise": [2, 3, 3.16, 4, 5, 6, 7, 8, 8.74, 9, 10],
     "lrs_noise": [3.16, 8.74],
     "verbose": false,
-    "parasitics": false,
-    "w_res": [0.0, 0.25, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0],
-    "V_read": [-0.2]
+    "parasitics": false
 }
