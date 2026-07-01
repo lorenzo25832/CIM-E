@@ -760,9 +760,9 @@ def twin_vgg7_plot(df: pd.DataFrame,
                                 sharey=True,
                                 squeeze=False)
         axs[0][0].set_ylabel("Accuracy (\\%)")
-        axs[0][0].set_ylim(top=103)
+        axs[0][0].set_ylim(bottom=0, top=90)
 
-        for baseline in ["top1_baseline", "top5_baseline"]:
+        for baseline in []:#["top1_baseline", "top5_baseline"]:
             params = {"top1_baseline":{"name":"Top-1 Baseline", "linestyle": "--"},
                 "top5_baseline":{"name":"Top-5 Baseline", "linestyle": "-."}}[baseline]
             base_top = df_nn[baseline].unique()
@@ -774,28 +774,31 @@ def twin_vgg7_plot(df: pd.DataFrame,
         for lrs_n in lrs_noise if lrs_noise is not None else df_nn["lrs_noise"].unique():
             for y_param in y_params:
                 df_filt = df_nn[df_nn["lrs_noise"] == lrs_n]
+                if len(lrs_noise) > 1:
+                    label = rf"{dict(top1='Top-1', top5='Top-5').get(y_param, y_param)} with LRS {lrs_n}$\sigma$"
+                else:
+                    label = rf"{dict(top1='Top-1', top5='Top-5').get(y_param, y_param)}"
                 axs[0][0].plot(df_filt["hrs_noise"],
                     df_filt[y_param],
                     marker='x',
-                    label=rf"{dict(top1='Top-1', top5='Top-5').get(y_param, y_param)} with LRS {lrs_n}$\sigma$")
+                    label=label)
 
         axs[0][0].set_xticks(list(filter(lambda d: d%1==0,df_nn["hrs_noise"].unique())))
         axs[0][0].xaxis.set_major_formatter(
             ticker.StrMethodFormatter("{x:.2g}"))
         axs[0][0].tick_params(axis='both', labelsize=10)
         axs[0][0].set_xlabel(
-            rf"HRS $\sigma (\mu A)$")
+            rf"HRS standard deviation $(\mu A)$")
         axs[0][0].grid(axis='y',
                     linestyle=':',
                     color=grid_color)
 
         axs[0][0].legend(loc='lower left', fontsize=8, ncol=2)
+        fig.tight_layout()
         fig.savefig(
             f"{store_path}/twin_vgg7.pdf")
         fig.savefig(
             f"{store_path}/twin_vgg7.svg")
-        fig.savefig(
-            f"{store_path}/twin_vgg7.png")
 
 def get_exp_products(config: str):
     exp_name = config.split('/')[-1].split('.json')[0]
@@ -917,6 +920,8 @@ if __name__ == "__main__":
         twin_vgg7_plot(df=df,
                                 store_path=store_path,
                                 s_cat=cat_static,
-                                d_cat=cat_dynamic,)
+                                d_cat=cat_dynamic,
+                                lrs_noise=[3.16],
+                                )
     else:
         raise Exception(f"Plot for experiment {exp_name} not implemented.")
