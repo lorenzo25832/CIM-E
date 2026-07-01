@@ -92,4 +92,5 @@ $CONTAINER_ENGINE run -it --rm $CONTAINER_FLAGS \
     -v ${PROJ_DIR}/src:/apps/src:Z \
     -v ${PROJ_DIR}/models:/apps/models:Z \
     -v ${PROJ_DIR}/results:/apps/results:Z \
+    -v ${PROJ_DIR}/datasets:/apps/home/.keras/datasets:Z \
     cim-e $EXP_NAME $N_JOBS $USE_SAME_INPUTS $SAVE_SIM_STATS
