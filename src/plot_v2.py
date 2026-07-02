@@ -739,7 +739,7 @@ def twin_vgg7_plot(df: pd.DataFrame,
                            store_path: str,
                            s_cat: list,
                            d_cat: list,
-                           lrs_noise: list | None = None,
+                           hrs_noise: list | None = None,
                            y_params: list[str] = ["top1", "top5"],
                            ) -> None:
     """
@@ -771,24 +771,26 @@ def twin_vgg7_plot(df: pd.DataFrame,
                         color='black',
                         linestyle=params["linestyle"], label=params["name"])
 
-        for lrs_n in lrs_noise if lrs_noise is not None else df_nn["lrs_noise"].unique():
+        if hrs_noise is None:
+            hrs_noise = df_nn["hrs_noise"].unique()
+        for hrs_n in hrs_noise:
             for y_param in y_params:
-                df_filt = df_nn[df_nn["lrs_noise"] == lrs_n]
-                if len(lrs_noise) > 1:
-                    label = rf"{dict(top1='Top-1', top5='Top-5').get(y_param, y_param)} with LRS {lrs_n}$\sigma$"
+                df_filt = df_nn[df_nn["hrs_noise"] == hrs_n]
+                if len(hrs_noise) > 1:
+                    label = rf"{dict(top1='Top-1', top5='Top-5').get(y_param, y_param)} with HRS {hrs_n}$\sigma$"
                 else:
                     label = rf"{dict(top1='Top-1', top5='Top-5').get(y_param, y_param)}"
-                axs[0][0].plot(df_filt["hrs_noise"],
+                axs[0][0].plot(df_filt["lrs_noise"],
                     df_filt[y_param],
                     marker='x',
                     label=label)
 
-        axs[0][0].set_xticks(list(filter(lambda d: d%1==0,df_nn["hrs_noise"].unique())))
+        axs[0][0].set_xticks(list(filter(lambda d: d%1==0,df_nn["lrs_noise"].unique())))
         axs[0][0].xaxis.set_major_formatter(
             ticker.StrMethodFormatter("{x:.2g}"))
         axs[0][0].tick_params(axis='both', labelsize=10)
         axs[0][0].set_xlabel(
-            rf"HRS standard deviation $(\mu A)$")
+            rf"LRS standard deviation $(\mu A)$")
         axs[0][0].grid(axis='y',
                     linestyle=':',
                     color=grid_color)
@@ -921,7 +923,6 @@ if __name__ == "__main__":
                                 store_path=store_path,
                                 s_cat=cat_static,
                                 d_cat=cat_dynamic,
-                                lrs_noise=[3.16],
                                 )
     else:
         raise Exception(f"Plot for experiment {exp_name} not implemented.")
