@@ -10,7 +10,7 @@
     "batch": 200,
     "num_runs": 4,
     "xbar_size": [
-	[256, 256]
+	[16, 16]
     ],
     "digital_only": false,
     "hrs_lrs": [

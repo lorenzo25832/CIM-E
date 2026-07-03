@@ -12,7 +12,8 @@ apache-tvm-src-*
 
 # Simulation artefacts
 acs_configs
-results
+results/*
+!results/twin_vgg7_*
 
 # Models
 *.so
