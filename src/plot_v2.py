@@ -18,6 +18,7 @@ import argparse
 import json
 from functools import reduce
 import itertools
+from pathlib import Path
 
 from model_parser import *
 from RWTHColors import ColorManager
@@ -736,7 +737,7 @@ def parasitics_multi_plot(df: pd.DataFrame, store_path: str, s_cat: list,
                             dpi=300)
 
 def twin_vgg7_plot(df: pd.DataFrame,
-                           store_path: str,
+                           store_path: Path,
                            s_cat: list,
                            d_cat: list,
                            hrs_noise: list | None = None,
@@ -798,9 +799,9 @@ def twin_vgg7_plot(df: pd.DataFrame,
         axs[0][0].legend(loc='lower left', fontsize=8, ncol=2)
         fig.tight_layout()
         fig.savefig(
-            f"{store_path}/twin_vgg7.pdf")
+            f"{store_path}/{store_path.stem}.pdf")
         fig.savefig(
-            f"{store_path}/twin_vgg7.svg")
+            f"{store_path}/{store_path.stem}.svg")
 
 def get_exp_products(config: str):
     exp_name = config.split('/')[-1].split('.json')[0]
@@ -915,12 +916,13 @@ if __name__ == "__main__":
                                             d_cat=cat_dynamic,
                                             state='hrs',
                                             plt_legend=False)
-    elif exp_name == 'twin_vgg7':
+    elif exp_name.startswith('twin_vgg7'):
         if args.secondary_config:
             raise Exception("twin_vgg7 does not support secondary config")
+        print(f"{store_path=}")
 
         twin_vgg7_plot(df=df,
-                                store_path=store_path,
+                                store_path=Path(store_path),
                                 s_cat=cat_static,
                                 d_cat=cat_dynamic,
                                 )
